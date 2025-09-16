@@ -14,5 +14,8 @@
   "description": "",
   "dependencies": {
     "@tensorflow/tfjs": "^4.15.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
   }
 }
