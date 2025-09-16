@@ -1,0 +1,13 @@
+# This file represents the Keras model file that should be uploaded
+# The actual model file (best_mobilenetv2_model.keras) needs to be placed in the root directory
+# This is a placeholder file - the actual binary model file should be copied here
+
+import os
+import sys
+
+# Check if the actual model file exists
+if not os.path.exists('best_mobilenetv2_model.keras'):
+    print("❌ ERROR: best_mobilenetv2_model.keras file not found!")
+    print("Please upload the actual Keras model file to the root directory.")
+    print("The model file should be the binary .keras file from your training.")
+    sys.exit(1)
