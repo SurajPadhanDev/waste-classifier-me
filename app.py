@@ -173,6 +173,55 @@ st.markdown("""
         100% { transform: rotate(360deg); }
     }
     
+    /* Waste type specific card backgrounds */
+    .hazardous-waste {
+        background: linear-gradient(135deg, 
+            rgba(220, 20, 20, 0.9) 0%, 
+            rgba(180, 30, 30, 0.9) 50%,
+            rgba(200, 40, 40, 0.9) 100%) !important;
+        border-left: 5px solid #ff0000 !important;
+        box-shadow: 
+            0 8px 32px rgba(220, 20, 20, 0.4),
+            inset 0 1px 0 rgba(255,255,255,0.1),
+            0 0 20px rgba(220, 20, 20, 0.3) !important;
+    }
+    
+    .hazardous-waste::before {
+        background: linear-gradient(45deg, transparent, rgba(255, 100, 100, 0.2), transparent) !important;
+    }
+    
+    .organic-waste {
+        background: linear-gradient(135deg, 
+            rgba(34, 139, 34, 0.9) 0%, 
+            rgba(50, 160, 50, 0.9) 50%,
+            rgba(70, 180, 70, 0.9) 100%) !important;
+        border-left: 5px solid #00ff00 !important;
+        box-shadow: 
+            0 8px 32px rgba(34, 139, 34, 0.4),
+            inset 0 1px 0 rgba(255,255,255,0.1),
+            0 0 20px rgba(34, 139, 34, 0.3) !important;
+    }
+    
+    .organic-waste::before {
+        background: linear-gradient(45deg, transparent, rgba(100, 255, 100, 0.2), transparent) !important;
+    }
+    
+    .inorganic-waste {
+        background: linear-gradient(135deg, 
+            rgba(30, 144, 255, 0.9) 0%, 
+            rgba(50, 160, 255, 0.9) 50%,
+            rgba(70, 180, 255, 0.9) 100%) !important;
+        border-left: 5px solid #0080ff !important;
+        box-shadow: 
+            0 8px 32px rgba(30, 144, 255, 0.4),
+            inset 0 1px 0 rgba(255,255,255,0.1),
+            0 0 20px rgba(30, 144, 255, 0.3) !important;
+    }
+    
+    .inorganic-waste::before {
+        background: linear-gradient(45deg, transparent, rgba(100, 150, 255, 0.2), transparent) !important;
+    }
+    
     /* Enhanced confidence indicators */
     .confidence-high {
         color: #00ff88;
@@ -262,6 +311,8 @@ if 'model' not in st.session_state:
     st.session_state.model = None
 if 'pred_buffer' not in st.session_state:
     st.session_state.pred_buffer = deque(maxlen=10)
+if 'camera_capture' not in st.session_state:
+    st.session_state.camera_capture = None
 
 # Main header
 st.markdown('<h1 class="main-header">♻️ Smart Waste Classifier</h1>', unsafe_allow_html=True)
@@ -298,9 +349,9 @@ st.sidebar.markdown("""
 4. View results with confidence scores
 
 ### Waste Categories:
-- 🌱 **Organic**: Food waste, biodegradable items
-- ☠️ **Hazardous**: Toxic materials, chemicals
-- ♻️ **Recycle**: Plastic, glass, paper, metal
+- 🌱 **Organic Waste**: Food waste, biodegradable items
+- ☠️ **Hazardous Waste**: Toxic materials, chemicals
+- ♻️ **Inorganic Waste**: Plastic, glass, paper, metal
 """)
 
 st.sidebar.markdown("---")
@@ -311,6 +362,16 @@ st.sidebar.markdown("""
 - Avoid cluttered backgrounds
 - Wait for confidence > 70% for reliable results
 """)
+
+# Helper function to get waste type CSS class
+def get_waste_type_class(prediction):
+    """Get the CSS class for waste type specific styling"""
+    class_mapping = {
+        "Hazardous Waste": "hazardous-waste",
+        "Organic Waste": "organic-waste", 
+        "Inorganic Waste": "inorganic-waste"
+    }
+    return class_mapping.get(prediction, "prediction-card")
 
 # Load the model
 if st.session_state.model is None:
@@ -337,6 +398,9 @@ with col1:
     with camera_col2:
         if st.button("⏹️ Stop Camera", type="secondary", use_container_width=True):
             st.session_state.camera_active = False
+            if st.session_state.camera_capture:
+                st.session_state.camera_capture.release()
+                st.session_state.camera_capture = None
             st.rerun()
     
     # Camera feed placeholder
@@ -346,54 +410,64 @@ with col1:
     # Camera functionality
     if st.session_state.camera_active:
         try:
-            cap = cv2.VideoCapture(0)
-            if not cap.isOpened():
-                st.error("❌ Could not access webcam!")
-                st.session_state.camera_active = False
-            else:
-                # Camera loop
-                frame_placeholder = camera_placeholder.empty()
-                
-                for i in range(30):  # Run for 30 frames
-                    if not st.session_state.camera_active:
-                        break
+            # Initialize camera if not already done
+            if st.session_state.camera_capture is None:
+                st.session_state.camera_capture = cv2.VideoCapture(0)
+                if not st.session_state.camera_capture.isOpened():
+                    st.error("❌ Could not access webcam!")
+                    st.session_state.camera_active = False
+                    st.session_state.camera_capture = None
+                    st.rerun()
+            
+            # Process single frame per run
+            if st.session_state.camera_capture is not None:
+                ret, frame = st.session_state.camera_capture.read()
+                if ret:
+                    # Display frame
+                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    camera_placeholder.image(frame_rgb, channels="RGB", use_column_width=True)
+                    
+                    # Predict
+                    prediction, confidence = predict_image_class(
+                        st.session_state.model, 
+                        frame_rgb, 
+                        st.session_state.pred_buffer
+                    )
+                    
+                    # Display result
+                    if confidence >= 0.7:
+                        conf_class = "confidence-high"
+                    elif confidence >= 0.5:
+                        conf_class = "confidence-medium"
+                    else:
+                        conf_class = "confidence-low"
                         
-                    ret, frame = cap.read()
-                    if ret:
-                        # Display frame
-                        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                        frame_placeholder.image(frame_rgb, channels="RGB", use_column_width=True)
-                        
-                        # Predict
-                        prediction, confidence = predict_image_class(
-                            st.session_state.model, 
-                            frame_rgb, 
-                            st.session_state.pred_buffer
-                        )
-                        
-                        # Display result
-                        if confidence >= 0.7:
-                            conf_class = "confidence-high"
-                        elif confidence >= 0.5:
-                            conf_class = "confidence-medium"
-                        else:
-                            conf_class = "confidence-low"
-                            
-                        camera_result_placeholder.markdown(f"""
-                        <div class="prediction-card">
-                            <h3>🎯 Live Prediction</h3>
-                            <p><strong>Class:</strong> {prediction}</p>
-                            <p><strong>Confidence:</strong> <span class="{conf_class}">{confidence*100:.1f}%</span></p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-                        time.sleep(0.1)
-                
-                cap.release()
+                    waste_class = get_waste_type_class(prediction)
+                    camera_result_placeholder.markdown(f"""
+                    <div class="prediction-card {waste_class}">
+                        <h3>🎯 Live Prediction</h3>
+                        <p><strong>Class:</strong> {prediction}</p>
+                        <p><strong>Confidence:</strong> <span class="{conf_class}">{confidence*100:.1f}%</span></p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Continue processing by rerunning
+                    time.sleep(0.05)
+                    st.rerun()
+                else:
+                    # Camera read failed
+                    st.error("❌ Failed to read from camera")
+                    st.session_state.camera_active = False
+                    if st.session_state.camera_capture:
+                        st.session_state.camera_capture.release()
+                        st.session_state.camera_capture = None
                 
         except Exception as e:
             st.error(f"❌ Camera error: {str(e)}")
             st.session_state.camera_active = False
+            if st.session_state.camera_capture:
+                st.session_state.camera_capture.release()
+                st.session_state.camera_capture = None
     
     else:
         camera_placeholder.markdown("📷 Camera is stopped. Click 'Start Camera' to begin live classification.")
@@ -443,8 +517,9 @@ with col2:
             conf_class = "confidence-low"
             conf_emoji = "❓"
             
+        waste_class = get_waste_type_class(prediction)
         st.markdown(f"""
-        <div class="prediction-card">
+        <div class="prediction-card {waste_class}">
             <h3>{conf_emoji} Classification Result</h3>
             <p><strong>Predicted Class:</strong> {prediction}</p>
             <p><strong>Confidence Score:</strong> <span class="{conf_class}">{confidence*100:.1f}%</span></p>
@@ -456,9 +531,9 @@ with col2:
         
         # Additional info based on class
         class_info = {
-            "Organic": "🌱 Dispose in organic waste bin. This waste is biodegradable.",
-            "Hazardous": "☠️ Handle with care! Dispose at designated hazardous waste facility.",
-            "Recycle": "♻️ Great! This item can be recycled. Clean before disposing."
+            "Organic Waste": "🌱 Dispose in organic waste bin. This waste is biodegradable.",
+            "Hazardous Waste": "☠️ Handle with care! Dispose at designated hazardous waste facility.",
+            "Inorganic Waste": "♻️ Great! This item can be recycled. Clean before disposing."
         }
         
         if prediction in class_info:

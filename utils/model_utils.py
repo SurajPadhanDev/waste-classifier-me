@@ -5,7 +5,7 @@ from collections import deque
 
 # Class definitions
 CLASSES = ["O", "R", "H"]
-CLASS_NAMES = {"O": "Hazardous", "R": "Organic", "H": "Recycle"}
+CLASS_NAMES = {"O": "Hazardous Waste", "R": "Organic Waste", "H": "Inorganic Waste"}
 CONFIDENCE_THRESHOLD = 0.7
 
 def load_classification_model(model_path):
