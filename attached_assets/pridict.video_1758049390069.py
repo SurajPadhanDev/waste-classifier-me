@@ -11,7 +11,7 @@ from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 # -----------------------------
 # Load trained model
 # -----------------------------
-MODEL_PATH = r"D:\new D\collage\hackathorn\3\DATASET\best_mobilenetv2_model.keras"
+MODEL_PATH = "/Users/surajpadhan/Desktop/WasteWiseVision/attached_assets/best_mobilenetv2_model_1758049390069.keras"
 
 try:
     model = load_model(MODEL_PATH)
@@ -221,3 +221,4 @@ if __name__ == "__main__":
     if app.cap:
         app.cap.release()
     cv2.destroyAllWindows()
+
