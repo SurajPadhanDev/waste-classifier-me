@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>♻️ Smart Waste Classifier - BOLTINNOVATOR</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♻️</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <h1 class="main-title">♻️ Smart Waste Classifier</h1>
+                <p class="team-name">🚀 BOLTINNOVATOR 🚀</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Status Bar -->
+                <div class="status-bar">
+                    <div class="status-item">
+                        <span class="status-label">Model Status:</span>
+                        <span id="model-status" class="status-value loading">Loading...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Camera Status:</span>
+                        <span id="camera-status" class="status-value inactive">Inactive</span>
+                    </div>
+                </div>
+
+                <!-- Classification Modes -->
+                <div class="classification-grid">
+                    <!-- Live Camera Classification -->
+                    <div class="classification-card">
+                        <h2>📹 Live Camera Classification</h2>
+                        <div class="camera-container">
+                            <video id="camera-feed" autoplay muted playsinline></video>
+                            <canvas id="camera-canvas" style="display: none;"></canvas>
+                            <div id="camera-placeholder" class="camera-placeholder">
+                                <div class="camera-icon">📷</div>
+                                <p>Click "Start Camera" to begin live classification</p>
+                            </div>
+                        </div>
+                        
+                        <div class="camera-controls">
+                            <button id="start-camera" class="btn btn-primary">📹 Start Camera</button>
+                            <button id="stop-camera" class="btn btn-secondary" disabled>⏹️ Stop Camera</button>
+                        </div>
+
+                        <div id="live-result" class="result-card" style="display: none;">
+                            <h3>🎯 Live Prediction</h3>
+                            <div class="result-content">
+                                <div class="result-class">
+                                    <span class="label">Class:</span>
+                                    <span id="live-class" class="value">-</span>
+                                </div>
+                                <div class="result-confidence">
+                                    <span class="label">Confidence:</span>
+                                    <span id="live-confidence" class="value">-</span>
+                                </div>
+                                <div class="confidence-bar">
+                                    <div id="live-confidence-fill" class="confidence-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Image Classification -->
+                    <div class="classification-card">
+                        <h2>📤 Upload Image Classification</h2>
+                        <div class="upload-container">
+                            <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                            <div id="upload-area" class="upload-area">
+                                <div class="upload-icon">📁</div>
+                                <p>Click to upload an image or drag & drop</p>
+                                <small>Supports JPG, PNG, JPEG</small>
+                            </div>
+                            <img id="uploaded-image" class="uploaded-image" style="display: none;">
+                        </div>
+
+                        <div id="upload-result" class="result-card" style="display: none;">
+                            <h3>✅ Classification Result</h3>
+                            <div class="result-content">
+                                <div class="result-class">
+                                    <span class="label">Predicted Class:</span>
+                                    <span id="upload-class" class="value">-</span>
+                                </div>
+                                <div class="result-confidence">
+                                    <span class="label">Confidence Score:</span>
+                                    <span id="upload-confidence" class="value">-</span>
+                                </div>
+                                <div class="confidence-bar">
+                                    <div id="upload-confidence-fill" class="confidence-fill"></div>
+                                </div>
+                                <div id="disposal-info" class="disposal-info"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="instructions">
+                    <h2>📖 Usage Instructions</h2>
+                    <div class="instructions-grid">
+                        <div class="instruction-card">
+                            <h3>📹 Live Camera</h3>
+                            <ul>
+                                <li>Click "Start Camera" to begin</li>
+                                <li>Point camera at waste items</li>
+                                <li>Real-time classification appears</li>
+                                <li>Click "Stop Camera" to end</li>
+                            </ul>
+                        </div>
+                        <div class="instruction-card">
+                            <h3>📤 Image Upload</h3>
+                            <ul>
+                                <li>Click upload area or drag image</li>
+                                <li>Supports JPG, PNG, JPEG</li>
+                                <li>View results with confidence</li>
+                                <li>Get disposal recommendations</li>
+                            </ul>
+                        </div>
+                        <div class="instruction-card">
+                            <h3>🎯 Classification Tips</h3>
+                            <ul>
+                                <li>Ensure good lighting</li>
+                                <li>Hold items clearly in view</li>
+                                <li>Avoid cluttered backgrounds</li>
+                                <li>Wait for confidence > 70%</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <p>🚀 Powered by BOLTINNOVATOR Team | AI Waste Classification System</p>
+                <p>Built with ❤️ using TensorFlow.js & Modern Web Technologies</p>
+            </div>
+        </footer>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <p>Loading AI Model...</p>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
