@@ -1,4 +1,4 @@
-modules = ["python-3.11"]
+modules = ["python-3.11", "nodejs-20", "web"]
 
 [nix]
 channel = "stable-25_05"
@@ -24,13 +24,13 @@ args = "Streamlit Waste Classifier"
 name = "Streamlit Waste Classifier"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "streamlit run app.py --server.port 5000"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "streamlit run app.py --server.port=5000 --server.headless=true --browser.gatherUsageStats=false"
+waitForPort = 5000
 
 [[ports]]
 localPort = 5000
@@ -43,3 +43,7 @@ externalPort = 3000
 [[ports]]
 localPort = 38401
 externalPort = 3002
+
+[[ports]]
+localPort = 46233
+externalPort = 3001
