@@ -22,59 +22,235 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for animations and styling
+# Enhanced CSS for stunning visuals and animations
 st.markdown("""
 <style>
+    /* Global background with moving gradient */
+    .stApp {
+        background: linear-gradient(-45deg, #0f0f23, #1a1a2e, #16213e, #0f3460);
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+    }
+    
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* Particle effect overlay */
+    .stApp::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            radial-gradient(2px 2px at 20px 30px, #00ff41, transparent),
+            radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.1), transparent),
+            radial-gradient(1px 1px at 90px 40px, #00ff41, transparent),
+            radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.1), transparent),
+            radial-gradient(2px 2px at 160px 30px, #00ff41, transparent);
+        background-repeat: repeat;
+        background-size: 200px 100px;
+        animation: sparkle 20s linear infinite;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    @keyframes sparkle {
+        from { transform: translateY(0px); }
+        to { transform: translateY(-100px); }
+    }
+    
+    /* Main header with enhanced effects */
     .main-header {
         text-align: center;
-        padding: 20px 0;
-        background: linear-gradient(90deg, #00ff41, #41ff00);
+        padding: 30px 0;
+        background: linear-gradient(45deg, #00ff41, #41ff00, #00ff88, #88ff00);
+        background-size: 300% 300%;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        animation: glow 2s ease-in-out infinite alternate;
+        animation: headerGlow 3s ease-in-out infinite alternate, colorShift 8s ease infinite;
+        font-size: 3.5rem;
+        font-weight: 900;
+        text-shadow: 0 0 30px rgba(0,255,65,0.5);
+        position: relative;
+        z-index: 10;
     }
     
-    @keyframes glow {
-        from { filter: brightness(1); }
-        to { filter: brightness(1.3); }
+    @keyframes headerGlow {
+        from { 
+            filter: brightness(1) drop-shadow(0 0 10px rgba(0,255,65,0.3));
+            transform: scale(1);
+        }
+        to { 
+            filter: brightness(1.4) drop-shadow(0 0 20px rgba(0,255,65,0.8));
+            transform: scale(1.02);
+        }
     }
     
+    @keyframes colorShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* Enhanced team name with 3D effect */
     .team-name {
         text-align: center;
-        font-size: 24px;
-        font-weight: bold;
-        color: #00ff41;
-        margin: 20px 0;
-        animation: pulse 2s infinite;
+        font-size: 28px;
+        font-weight: 900;
+        background: linear-gradient(45deg, #ff6b35, #f7931e, #ffd700, #ff6b35);
+        background-size: 300% 300%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 25px 0;
+        animation: teamPulse 2.5s infinite, teamShine 6s ease infinite;
+        transform-style: preserve-3d;
+        position: relative;
+        z-index: 10;
     }
     
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
+    @keyframes teamPulse {
+        0%, 100% { 
+            transform: scale(1) rotateY(0deg);
+            filter: drop-shadow(0 0 10px rgba(255,107,53,0.4));
+        }
+        50% { 
+            transform: scale(1.08) rotateY(2deg);
+            filter: drop-shadow(0 0 25px rgba(255,107,53,0.8));
+        }
     }
     
+    @keyframes teamShine {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* Enhanced prediction cards with glassmorphism */
     .prediction-card {
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        padding: 20px;
-        border-radius: 10px;
-        margin: 10px 0;
-        border-left: 5px solid #00ff41;
+        background: linear-gradient(135deg, 
+            rgba(30, 60, 114, 0.8) 0%, 
+            rgba(42, 82, 152, 0.8) 50%,
+            rgba(58, 123, 213, 0.8) 100%);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 25px;
+        border-radius: 20px;
+        margin: 15px 0;
+        box-shadow: 
+            0 8px 32px rgba(0,0,0,0.3),
+            inset 0 1px 0 rgba(255,255,255,0.1),
+            0 0 20px rgba(0,255,65,0.1);
+        position: relative;
+        overflow: hidden;
+        animation: cardFloat 6s ease-in-out infinite;
+        z-index: 5;
     }
     
+    .prediction-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(0,255,65,0.1), transparent);
+        animation: cardShimmer 3s linear infinite;
+        pointer-events: none;
+    }
+    
+    @keyframes cardFloat {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-3px) rotate(0.5deg); }
+    }
+    
+    @keyframes cardShimmer {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Enhanced confidence indicators */
     .confidence-high {
-        color: #00ff41;
+        color: #00ff88;
         font-weight: bold;
+        text-shadow: 0 0 10px rgba(0,255,136,0.5);
+        animation: confidenceGlow 2s ease-in-out infinite alternate;
     }
     
     .confidence-medium {
         color: #ffaa00;
         font-weight: bold;
+        text-shadow: 0 0 10px rgba(255,170,0,0.5);
+        animation: confidenceGlow 2s ease-in-out infinite alternate;
     }
     
     .confidence-low {
         color: #ff4444;
         font-weight: bold;
+        text-shadow: 0 0 10px rgba(255,68,68,0.5);
+        animation: confidenceGlow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes confidenceGlow {
+        from { filter: brightness(1); }
+        to { filter: brightness(1.3); }
+    }
+    
+    /* Enhanced buttons with hover effects */
+    .stButton > button {
+        background: linear-gradient(45deg, #00ff41, #41ff00) !important;
+        border: none !important;
+        border-radius: 15px !important;
+        padding: 12px 24px !important;
+        font-weight: bold !important;
+        color: #000 !important;
+        box-shadow: 0 4px 15px rgba(0,255,65,0.3) !important;
+        transition: all 0.3s ease !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px) scale(1.05) !important;
+        box-shadow: 0 8px 25px rgba(0,255,65,0.5) !important;
+    }
+    
+    /* Sidebar enhancements */
+    .css-1d391kg {
+        background: linear-gradient(180deg, 
+            rgba(15, 15, 35, 0.95) 0%, 
+            rgba(26, 26, 46, 0.95) 100%) !important;
+        backdrop-filter: blur(10px) !important;
+        border-right: 1px solid rgba(0,255,65,0.2) !important;
+    }
+    
+    /* Content area transparency */
+    .block-container {
+        background: rgba(255,255,255,0.02) !important;
+        backdrop-filter: blur(5px) !important;
+        border-radius: 20px !important;
+        padding: 2rem !important;
+        position: relative !important;
+        z-index: 2 !important;
+    }
+    
+    /* Progress bar enhancement */
+    .stProgress > div > div > div {
+        background: linear-gradient(90deg, #00ff41, #41ff00) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 0 10px rgba(0,255,65,0.5) !important;
+    }
+    
+    /* File uploader styling */
+    .uploadedFile {
+        border: 2px dashed rgba(0,255,65,0.3) !important;
+        border-radius: 15px !important;
+        background: rgba(255,255,255,0.05) !important;
+        backdrop-filter: blur(10px) !important;
     }
 </style>
 """, unsafe_allow_html=True)
