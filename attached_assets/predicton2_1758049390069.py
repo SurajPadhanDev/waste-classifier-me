@@ -11,7 +11,7 @@ from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 # -----------------------------
 # Load trained model
 # -----------------------------
-model_path = "/Users/surajpadhan/Desktop/model code/best_mobilenetv2_model.keras"
+model_path = "/Users/surajpadhan/Desktop/WasteWiseVision/attached_assets/best_mobilenetv2_model_1758049390069.keras"
 model = load_model(model_path)
 print("✅ Model loaded successfully!")
 
@@ -99,3 +99,4 @@ root.mainloop()
 
 cap.release()
 cv2.destroyAllWindows()
+
