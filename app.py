@@ -305,14 +305,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Initialize session state
-if 'camera_active' not in st.session_state:
-    st.session_state.camera_active = False
 if 'model' not in st.session_state:
     st.session_state.model = None
 if 'pred_buffer' not in st.session_state:
     st.session_state.pred_buffer = deque(maxlen=10)
-if 'camera_capture' not in st.session_state:
-    st.session_state.camera_capture = None
 
 # Main header
 st.markdown('<h1 class="main-header">♻️ Smart Waste Classifier</h1>', unsafe_allow_html=True)
@@ -336,11 +332,11 @@ def load_model_cached():
 # Sidebar with instructions
 st.sidebar.markdown("## 📖 Usage Instructions")
 st.sidebar.markdown("""
-### Live Camera Classification:
-1. Click **'Start Camera'** to begin live classification
-2. Point your camera at waste items
-3. The system will classify in real-time
-4. Click **'Stop Camera'** to end the session
+### Camera Classification:
+1. Click the **camera button** to capture an image
+2. Allow camera access when prompted
+3. Take a photo of the waste item
+4. View instant classification results
 
 ### Upload Image Classification:
 1. Use the **file uploader** to select an image
@@ -385,92 +381,74 @@ if st.session_state.model is None:
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    st.markdown("## 📹 Live Camera Classification")
+    st.markdown("## 📹 Camera Classification")
     
-    # Camera controls
-    camera_col1, camera_col2 = st.columns([1, 1])
+    # Camera input widget (works in web browsers)
+    camera_image = st.camera_input(
+        "Take a photo of waste for classification",
+        help="Click to capture an image using your camera"
+    )
     
-    with camera_col1:
-        if st.button("📹 Start Camera", type="primary", use_container_width=True):
-            st.session_state.camera_active = True
-            st.rerun()
-    
-    with camera_col2:
-        if st.button("⏹️ Stop Camera", type="secondary", use_container_width=True):
-            st.session_state.camera_active = False
-            if st.session_state.camera_capture:
-                st.session_state.camera_capture.release()
-                st.session_state.camera_capture = None
-            st.rerun()
-    
-    # Camera feed placeholder
-    camera_placeholder = st.empty()
-    camera_result_placeholder = st.empty()
-    
-    # Camera functionality
-    if st.session_state.camera_active:
-        try:
-            # Initialize camera if not already done
-            if st.session_state.camera_capture is None:
-                st.session_state.camera_capture = cv2.VideoCapture(0)
-                if not st.session_state.camera_capture.isOpened():
-                    st.error("❌ Could not access webcam!")
-                    st.session_state.camera_active = False
-                    st.session_state.camera_capture = None
-                    st.rerun()
+    if camera_image is not None:
+        # Display captured image
+        image = Image.open(camera_image)
+        st.image(image, caption="Captured Image", use_column_width=True)
+        
+        # Convert PIL to numpy array
+        image_array = np.array(image)
+        if len(image_array.shape) == 3 and image_array.shape[2] == 4:
+            # Convert RGBA to RGB
+            image_array = cv2.cvtColor(image_array, cv2.COLOR_RGBA2RGB)
+        elif len(image_array.shape) == 3:
+            # Already RGB
+            pass
+        else:
+            # Convert grayscale to RGB
+            image_array = cv2.cvtColor(image_array, cv2.COLOR_GRAY2RGB)
+        
+        # Predict
+        with st.spinner("🔍 Analyzing image..."):
+            prediction, confidence = predict_image_class(
+                st.session_state.model, 
+                image_array, 
+                deque(maxlen=1)  # Single prediction for camera captures
+            )
+        
+        # Display results
+        if confidence >= 0.7:
+            conf_class = "confidence-high"
+            conf_emoji = "✅"
+        elif confidence >= 0.5:
+            conf_class = "confidence-medium"  
+            conf_emoji = "⚠️"
+        else:
+            conf_class = "confidence-low"
+            conf_emoji = "❓"
             
-            # Process single frame per run
-            if st.session_state.camera_capture is not None:
-                ret, frame = st.session_state.camera_capture.read()
-                if ret:
-                    # Display frame
-                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    camera_placeholder.image(frame_rgb, channels="RGB", use_column_width=True)
-                    
-                    # Predict
-                    prediction, confidence = predict_image_class(
-                        st.session_state.model, 
-                        frame_rgb, 
-                        st.session_state.pred_buffer
-                    )
-                    
-                    # Display result
-                    if confidence >= 0.7:
-                        conf_class = "confidence-high"
-                    elif confidence >= 0.5:
-                        conf_class = "confidence-medium"
-                    else:
-                        conf_class = "confidence-low"
-                        
-                    waste_class = get_waste_type_class(prediction)
-                    camera_result_placeholder.markdown(f"""
-                    <div class="prediction-card {waste_class}">
-                        <h3>🎯 Live Prediction</h3>
-                        <p><strong>Class:</strong> {prediction}</p>
-                        <p><strong>Confidence:</strong> <span class="{conf_class}">{confidence*100:.1f}%</span></p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Continue processing by rerunning
-                    time.sleep(0.05)
-                    st.rerun()
-                else:
-                    # Camera read failed
-                    st.error("❌ Failed to read from camera")
-                    st.session_state.camera_active = False
-                    if st.session_state.camera_capture:
-                        st.session_state.camera_capture.release()
-                        st.session_state.camera_capture = None
-                
-        except Exception as e:
-            st.error(f"❌ Camera error: {str(e)}")
-            st.session_state.camera_active = False
-            if st.session_state.camera_capture:
-                st.session_state.camera_capture.release()
-                st.session_state.camera_capture = None
+        waste_class = get_waste_type_class(prediction)
+        st.markdown(f"""
+        <div class="prediction-card {waste_class}">
+            <h3>{conf_emoji} Camera Classification Result</h3>
+            <p><strong>Predicted Class:</strong> {prediction}</p>
+            <p><strong>Confidence Score:</strong> <span class="{conf_class}">{confidence*100:.1f}%</span></p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Confidence progress bar
+        st.progress(float(confidence), text=f"Confidence: {confidence*100:.1f}%")
+        
+        # Additional info based on class
+        class_info = {
+            "Organic Waste": "🌱 Dispose in organic waste bin. This waste is biodegradable.",
+            "Hazardous Waste": "☠️ Handle with care! Dispose at designated hazardous waste facility.",
+            "Inorganic Waste": "♻️ Great! This item can be recycled. Clean before disposing."
+        }
+        
+        if prediction in class_info:
+            st.info(class_info[prediction])
     
     else:
-        camera_placeholder.markdown("📷 Camera is stopped. Click 'Start Camera' to begin live classification.")
+        st.markdown("📷 Click the camera button above to capture and classify waste images.")
 
 with col2:
     st.markdown("## 📤 Upload Image Classification")
@@ -527,7 +505,7 @@ with col2:
         """, unsafe_allow_html=True)
         
         # Confidence progress bar
-        st.progress(confidence, text=f"Confidence: {confidence*100:.1f}%")
+        st.progress(float(confidence), text=f"Confidence: {confidence*100:.1f}%")
         
         # Additional info based on class
         class_info = {
